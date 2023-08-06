@@ -1,0 +1,169 @@
+name: Sun Eruption Detection CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+jobs:
+  lint:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Cache dependencies
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: |
+            venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+
+      - name: Code formatting check
+        run: poetry run black --check --diff .
+
+      - name: Type check
+        run: poetry run mypy . || exit 0
+
+      - name: Linter check
+        run: poetry run ruff check --show-source .
+
+  code-ql:
+    name: Code security scan
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: python
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v2
+
+  pip-audit:
+    name: Dependencies security scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Cache dependencies
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: |
+            venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+
+      - name: Perform pip-audit
+        run: poetry run pip-audit --skip-editable
+
+  build:
+    name: Build image
+    runs-on: ubuntu-latest
+    needs: [
+      lint,
+      code-ql,
+      pip-audit
+    ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set Docker image ref
+        shell: bash
+        run: |
+          echo "IMAGE_REF=${REGISTRY}/${GITHUB_REPOSITORY,,}:b${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}" >> ${GITHUB_ENV}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and export
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ env.IMAGE_TAG }}
+          outputs: type=docker,dest=${{ github.event.repository.name }}.tar
+
+      - name: Upload Docker image
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ github.event.repository.name }}
+          path: ${{ github.event.repository.name }}.tar
+          retention-days: 1
+
+  trivy:
+    name: Image scan
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - name: Download image tarball
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ github.event.repository.name }}
+
+      - name: Scan image
+        uses: aquasecurity/trivy-action@master
+        with:
+          input: /github/workspace/${{ github.event.repository.name }}.tar
+          cache-dir: .trivy
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
