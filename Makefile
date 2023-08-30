@@ -10,7 +10,7 @@ poetry-update:
 
 # Linters
 lint:
-	black . && ruff .
+	black . && ruff --fix .
 
 mypy-check:
 	mypy .

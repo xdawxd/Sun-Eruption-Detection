@@ -131,7 +131,7 @@ jobs:
           context: .
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ${{ env.IMAGE_TAG }}
+          tags: ${{ env.IMAGE_REF }}
           outputs: type=docker,dest=${{ github.event.repository.name }}.tar
 
       - name: Upload Docker image
