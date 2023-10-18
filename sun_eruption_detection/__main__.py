@@ -1,12 +1,12 @@
-from pathlib import Path
+import datetime as dt
 from logging import config
+from pathlib import Path
 
-from sunpy.io.jp2 import get_header
 import cv2 as cv
 import numpy as np
-import datetime as dt
+from sunpy.io.jp2 import get_header
 
-from sun_eruption_detection.consts import IMAGES_PATH, NARROWED_IMAGES_PATH, BASE_PATH
+from sun_eruption_detection.consts import BASE_PATH, IMAGES_PATH, NARROWED_IMAGES_PATH
 from sun_eruption_detection.utils import read_sav_file
 
 # if opencv autocomplete does not work export a system environment variable PYTHONPATH with cv2 directory path
@@ -49,13 +49,13 @@ def find_white_areas():
 
 def get_outside_pixels(circle_x: float, circle_y: float, radius: float, points):
     points_array = np.squeeze(points)
-    distances = np.sqrt((points_array[:, 0] - circle_x)**2 + (points_array[:, 1] - circle_y)**2)
+    distances = np.sqrt((points_array[:, 0] - circle_x) ** 2 + (points_array[:, 1] - circle_y) ** 2)
     outside_indices = np.where(distances > radius)[0]
     return points_array[outside_indices]
 
 
 def main():
-    np_rec_array = read_sav_file()
+    np_rec_array = read_sav_file()  # noqa
 
     img_path_1 = list(NARROWED_IMAGES_PATH.iterdir())[0]
     img_1 = cv.imread(str(img_path_1))
@@ -73,9 +73,7 @@ def main():
         gray = cv.cvtColor(subs_res, cv.COLOR_BGR2GRAY)  # rgb -> greyscale
         thresh = cv.threshold(gray, 16, 255, cv.THRESH_BINARY)[1]  # threshold (obtain binary image)
 
-        contours = cv.findContours(
-            thresh, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE
-        )  # contour the thresholded image
+        contours = cv.findContours(thresh, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)  # contour the thresholded image
         contours = contours[0] if len(contours) == 2 else contours[1]
 
         # min_area += 500  # 15000
@@ -101,7 +99,6 @@ def main():
                 resized_subs_res = cv.resize(subs_res, (1024, 1024), interpolation=cv.INTER_AREA)
                 cv.imshow("image", resized_subs_res)
                 cv.waitKey(1)
-
 
         print(f"White Dots count is:, {len(white_dots)}, min area: {min_area}, image: {idx}")
         # resized_subs_res = cv.resize(subs_res, (128, 128), interpolation=cv.INTER_AREA)

@@ -7,8 +7,8 @@ import click
 import requests
 from bs4 import BeautifulSoup
 
-from sun_eruption_detection.error_handling.exceptions import InvalidEruptionDateTimeException
 from sun_eruption_detection.consts import BASE_PATH, IMAGES_PATH
+from sun_eruption_detection.error_handling.exceptions import InvalidEruptionDateTimeException
 
 
 class SunImageScraper:

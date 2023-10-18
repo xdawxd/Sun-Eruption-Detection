@@ -1,10 +1,10 @@
+import datetime as dt
 import shutil
+from logging import config
 from pathlib import Path
 
 import numpy as np
 from sunpy import time
-from logging import config
-import datetime as dt
 
 from sun_eruption_detection.consts import BASE_PATH, NARROWED_IMAGES_PATH
 from sun_eruption_detection.utils import read_sav_file

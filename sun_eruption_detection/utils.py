@@ -1,5 +1,5 @@
-from scipy.io import readsav
 import numpy as np
+from scipy.io import readsav
 
 from sun_eruption_detection.consts import SAV_FILES
 
