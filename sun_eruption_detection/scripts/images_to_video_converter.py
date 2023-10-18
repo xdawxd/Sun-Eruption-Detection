@@ -4,7 +4,7 @@ from pathlib import Path
 
 import cv2 as cv
 
-from sun_eruption_detection.scripts.consts import BASE_PATH, IMAGES_PATH
+from sun_eruption_detection.consts import BASE_PATH, NARROWED_IMAGES_PATH
 
 VIDEOS_PATH: Path = BASE_PATH / "static" / "videos"
 
@@ -16,7 +16,7 @@ class ImagesToVideConverter:
         out = cv.VideoWriter(
             str(VIDEOS_PATH / f"eruption{suffix}.avi"), cv.VideoWriter_fourcc(*"DIVX"), 5, (1024, 1024)
         )
-        for image_path in IMAGES_PATH.iterdir():
+        for image_path in NARROWED_IMAGES_PATH.iterdir():
             jp2 = cv.imread(str(image_path))
             resized_jp2 = cv.resize(jp2, (1024, 1024), interpolation=cv.INTER_AREA)
             out.write(resized_jp2)
