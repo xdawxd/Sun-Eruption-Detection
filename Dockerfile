@@ -12,7 +12,5 @@ RUN curl -sSL https://install.python-poetry.org | python3 -
 COPY ./pyproject.toml ./poetry.lock ./README.md ./
 RUN poetry install --no-root --without dev --sync --no-ansi --no-interaction
 
-ENV PATH=/app/.venv/bin:$PATH
-COPY --from=poetry /app/.venv /app/.venv
 COPY ./sun_eruption_detection ./sun_eruption_detection/
 CMD ["python3", "-m", "sun_eruption_detection"]
