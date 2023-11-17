@@ -9,6 +9,9 @@ on:
       - opened
       - synchronize
 
+env:
+  REGISTRY: ghcr.io
+
 jobs:
   lint:
     name: Code Quality
@@ -105,7 +108,7 @@ jobs:
       - name: Perform pip-audit
         run: poetry run pip-audit --skip-editable
 
-  build:
+  build:  # TODO -> remove push to ghcr.io
     name: Build image
     runs-on: ubuntu-latest
     needs: [
@@ -131,7 +134,7 @@ jobs:
           context: .
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ${{ env.IMAGE_TAG }}
+          tags: ${{ env.IMAGE_REF }}
           outputs: type=docker,dest=${{ github.event.repository.name }}.tar
 
       - name: Upload Docker image
