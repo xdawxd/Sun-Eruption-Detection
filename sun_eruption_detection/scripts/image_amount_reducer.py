@@ -6,10 +6,8 @@ from pathlib import Path
 import numpy as np
 from sunpy import time
 
-from sun_eruption_detection.consts import BASE_PATH, NARROWED_IMAGES_PATH
+from sun_eruption_detection.consts import BASE_PATH, NARROWED_IMAGES_PATH, IMAGES_PATH
 from sun_eruption_detection.utils import read_sav_file
-
-IMAGES_PATH: Path = BASE_PATH / "static" / "images"
 
 
 class ImageAmountReducer:

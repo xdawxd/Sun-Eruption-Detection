@@ -1,12 +1,12 @@
-import datetime as dt
 from logging import config
-from pathlib import Path
+from time import sleep
 
-import cv2 as cv
 import numpy as np
-from sunpy.io.jp2 import get_header
 
-from sun_eruption_detection.consts import BASE_PATH, IMAGES_PATH, NARROWED_IMAGES_PATH
+
+from sun_eruption_detection.consts import BASE_PATH, NARROWED_IMAGES_PATH
+import cv2 as cv
+from matplotlib import pyplot as plt
 from sun_eruption_detection.sun_eruption_finder import SunEruptionFinder
 from sun_eruption_detection.utils import read_sav_file
 
@@ -21,56 +21,34 @@ def get_outside_pixels(circle_x: float, circle_y: float, radius: float, points) 
 
 
 def main():
+    # image_paths = list(NARROWED_IMAGES_PATH.iterdir())
+    # for idx in range(len(image_paths) - 1):
+    #     img1 = cv.imread(str(image_paths[idx]), cv.IMREAD_GRAYSCALE)
+    #     img2 = cv.imread(str(image_paths[idx+1]), cv.IMREAD_GRAYSCALE)
+    #     img = cv.subtract(img1, img2)
+    #     # img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    #     img = cv.GaussianBlur(img, (5, 5), 0)
+    #     canny = cv.Canny(img, threshold1=5, threshold2=20)
+    #     plt.hist(canny.ravel(), 256, [0, 256])
+    #     plt.show()
+    #     sleep(1)
+
+        # ret, th1 = cv.threshold(img, 127, 255, cv.THRESH_BINARY)
+        # th2 = cv.adaptiveThreshold(img, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 11, 2)
+        # th3 = cv.adaptiveThreshold(img, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2)
+        # titles = ['Original Image', 'Global Thresholding (v = 127)',
+        #           'Adaptive Mean Thresholding', 'Adaptive Gaussian Thresholding']
+        # images = [img, th1, th2, th3]
+        # for i in range(4):
+        #     plt.subplot(2, 2, i + 1), plt.imshow(images[i], 'gray')
+        #     plt.title(titles[i])
+        #     plt.xticks([]), plt.yticks([])
+        # plt.show()
+        # break
+
+
     sun_eruption_finder = SunEruptionFinder()
     sun_eruption_finder.find()
-
-    # img_path_1 = list(NARROWED_IMAGES_PATH.iterdir())[0]
-    # img_1 = cv.imread(str(img_path_1))
-    #
-    # headers = get_header(str(img_path_1))[0]
-    # sun_radius = headers["R_SUN"] - 400
-    # x_img_center, y_img_center = headers["X0_MP"], headers["Y0_MP"]
-    #
-    # image_area_map = {}
-    # min_area = 100
-    # for idx, img_path in enumerate(list(NARROWED_IMAGES_PATH.iterdir())[1:]):
-    #     img_2 = cv.imread(str(img_path))
-    #
-    #     subs_res = cv.subtract(img_1, img_2)  # image subtraction
-    #     gray = cv.cvtColor(subs_res, cv.COLOR_BGR2GRAY)  # rgb -> greyscale
-    #     thresh = cv.threshold(gray, 16, 255, cv.THRESH_BINARY)[1]  # threshold (obtain binary image)
-    #
-    #     contours = cv.findContours(thresh, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)  # contour the thresholded image
-    #     contours = contours[0] if len(contours) == 2 else contours[1]
-    #
-    #     max_area = max([cv.contourArea(contour) for contour in contours])
-    #     min_area = (
-    #         max_area // 2
-    #     )  # Excluding smaller contoured areas. The scale of increase for this variable differs for each eruption case
-    #     white_spots = []
-    #     for contour in contours:
-    #         area = cv.contourArea(contour)
-    #         if area > min_area:
-    #             cv.circle(
-    #                 subs_res,
-    #                 (int(x_img_center), int(y_img_center)),
-    #                 int(sun_radius),
-    #                 (255, 0, 0),
-    #                 thickness=5,
-    #             )
-    #             image_area_map[area] = subs_res
-    #             white_spots.append(contour)
-    #
-    #             coordinates = get_outside_pixels(x_img_center, y_img_center, sun_radius, contour)
-    #
-    #             if coordinates.any():
-    #                 cv.drawContours(img_2, [np.expand_dims(coordinates, axis=1)], -1, (36, 255, 12), 4)
-    #
-    #             resized_img_2 = cv.resize(img_2, (1024, 1024), interpolation=cv.INTER_AREA)
-    #             cv.imshow("image", resized_img_2)
-    #             cv.waitKey(1)
-    #
-    #     print(f"White Dots count is: {len(white_spots)}, max_area: {max_area}, min_area: {min_area}, image: {idx+1}")
 
 
 if __name__ == "__main__":

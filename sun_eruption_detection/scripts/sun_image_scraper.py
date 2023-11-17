@@ -13,7 +13,7 @@ from sun_eruption_detection.error_handling.exceptions import InvalidEruptionDate
 
 class SunImageScraper:
     _URL: str = "https://helioviewer.org/jp2/AIA"
-    _DATE_PREFIX: Final[str] = "171"
+    _FILTER: Final[str] = "131"  # 171
     _DATETIME_FORMAT: str = "%Y/%m/%d %H:%M:%S"
     _IMAGE_DATETIME_FORMAT: str = "%Y_%m_%d__%H_%M_%S_%f"
     _REQUEST_TIMEOUT: Final[int] = 15
@@ -59,10 +59,10 @@ class SunImageScraper:
         date_format = self._DATETIME_FORMAT.split(" ")[0]
         if self._eruption_start_datetime.day != self._eruption_end_datetime.day:
             return [
-                f"{self._URL}/{self._eruption_start_datetime.strftime(date_format)}/{self._DATE_PREFIX}",
-                f"{self._URL}/{self._eruption_end_datetime.strftime(date_format)}/{self._DATE_PREFIX}",
+                f"{self._URL}/{self._eruption_start_datetime.strftime(date_format)}/{self._FILTER}",
+                f"{self._URL}/{self._eruption_end_datetime.strftime(date_format)}/{self._FILTER}",
             ]
-        return [f"{self._URL}/{self._eruption_start_datetime.strftime(date_format)}/{self._DATE_PREFIX}"]
+        return [f"{self._URL}/{self._eruption_start_datetime.strftime(date_format)}/{self._FILTER}"]
 
     def _validate_eruption_date(self) -> None:
         """
